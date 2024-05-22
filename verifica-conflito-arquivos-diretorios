@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# Função para verificar conflitos de merge em um arquivo
+function verifica_conflito(){
+    if grep -q -E ‘<<<<<<<|=======|>>>>>>>’ $arquivo; then
+        echo “O arquivo $arquivo contém marcações de conflito de merge.”
+    fi
+}
+
+# Função para percorrer recursivamente o diretório e verificar conflitos de merge
+function verifica_diretorio() {
+    local diretorio=”$1”
+    local arquivo
+    local arquivos=(“$diretorio”/*)
+    local i=0
+    while [ $i -lt ${#arquivos[@]} ]; do
+        arquivo=”${arquivos[$i]}”
+        if [ -f "$arquivo" ]; then
+            verifica_conflito “$arquivo”
+        elif [ -d “$arquivo”]; then
+            verifica_diretorio “$arquivo”
+        fi
+        ((i++))a
+    done
+}
+
+# Verifica se foi passado um diretório como argumento
+if [ $# -ne 1 ]; then
+    echo "Uso: $0 <diretório>"
+    exit 1
+fi
+
+# Verifica se o diretório existe
+if [ ! -d “$1” ]; then
+    echo "Diretório não encontrado: $1"
+    exit 1	
+fi
+
+# Chama a função principal para verificar conflitos de merge
+verifica_diretorio “$1”
